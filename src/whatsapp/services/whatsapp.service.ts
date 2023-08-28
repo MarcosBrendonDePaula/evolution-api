@@ -1417,6 +1417,14 @@ export class WAStartupService {
         source: getDevice(received.key.id),
       };
 
+      // if (this.localTypebot.enabled) {
+      //   await this.typebotService.sendTypebot(
+      //     { instanceName: this.instance.name },
+      //     messageRaw.key.remoteJid,
+      //     messageRaw,
+      //   );
+      // }
+
       if (this.localSettings.read_messages && received.key.id !== 'status@broadcast') {
         await this.client.readMessages([received.key]);
       }
@@ -1430,23 +1438,31 @@ export class WAStartupService {
       this.logger.verbose('Sending data to webhook in event MESSAGES_UPSERT');
       await this.sendDataWebhook(Events.MESSAGES_UPSERT, messageRaw);
 
-      if (this.localChatwoot.enabled) {
-        await this.chatwootService.eventWhatsapp(
-          Events.MESSAGES_UPSERT,
+      if (this.localTypebot.enabled) {
+        await this.typebotService.sendTypebot(
           { instanceName: this.instance.name },
+          messageRaw.key.remoteJid,
           messageRaw,
         );
       }
 
-      if (this.localTypebot.enabled) {
-        if (!(this.localTypebot.listening_from_me === false && messageRaw.key.fromMe === true)) {
-          await this.typebotService.sendTypebot(
-            { instanceName: this.instance.name },
-            messageRaw.key.remoteJid,
-            messageRaw,
-          );
-        }
-      }
+      // if (this.localChatwoot.enabled) {
+      //   await this.chatwootService.eventWhatsapp(
+      //     Events.MESSAGES_UPSERT,
+      //     { instanceName: this.instance.name },
+      //     messageRaw,
+      //   );
+      // }
+
+      // if (this.localTypebot.enabled) {
+      //   if (!(this.localTypebot.listening_from_me === false && messageRaw.key.fromMe === true)) {
+      //     await this.typebotService.sendTypebot(
+      //       { instanceName: this.instance.name },
+      //       messageRaw.key.remoteJid,
+      //       messageRaw,
+      //     );
+      //   }
+      // }
 
       if (this.localChamaai.enabled && messageRaw.key.fromMe === false) {
         await this.chamaaiService.sendChamaai(
@@ -2060,7 +2076,7 @@ export class WAStartupService {
       };
 
       this.logger.log(messageRaw);
-
+      await this.typebotService.sendTypebot({ instanceName: this.instance.name }, messageRaw.key.remoteJid, messageRaw);
       this.logger.verbose('Sending data to webhook in event SEND_MESSAGE');
       await this.sendDataWebhook(Events.SEND_MESSAGE, messageRaw);
 

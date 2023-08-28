@@ -196,21 +196,22 @@ export class TypebotService {
           remoteJid: data.remoteJid,
           pushName: data.pushName,
           instanceName: instance.instanceName,
+          initfromMe: data.initfromMe,
         },
       },
     };
 
     const request = await axios.post(data.url + '/api/v1/sendMessage', reqData);
 
-    if (request.data.sessionId) {
+    if (request.data.typebot.id) {
       data.sessions.push({
         remoteJid: data.remoteJid,
-        sessionId: `${id}-${request.data.sessionId}`,
+        sessionId: `${id}-${request.data.typebot.id}`,
         status: 'opened',
         createdAt: Date.now(),
         updateAt: Date.now(),
       });
-
+      this.logger.verbose('entrou aqui!');
       const typebotData = {
         enabled: true,
         url: data.url,
@@ -224,8 +225,8 @@ export class TypebotService {
       };
 
       this.create(instance, typebotData);
+      this.logger.verbose(request.data);
     }
-
     return request.data;
   }
 
@@ -390,7 +391,6 @@ export class TypebotService {
     const listening_from_me = findTypebot.listening_from_me;
 
     const session = sessions.find((session) => session.remoteJid === remoteJid);
-
     if (session && expire && expire > 0) {
       const now = Date.now();
 
@@ -412,6 +412,7 @@ export class TypebotService {
           sessions: sessions,
           remoteJid: remoteJid,
           pushName: msg.pushName,
+          initfromMe: msg.key.fromMe,
         });
 
         await this.sendWAMessage(instance, remoteJid, data.messages, data.input, data.clientSideActions);
@@ -436,8 +437,9 @@ export class TypebotService {
         sessions: sessions,
         remoteJid: remoteJid,
         pushName: msg.pushName,
+        initfromMe: msg.key.fromMe,
       });
-
+      console.log(['teste', session]);
       await this.sendWAMessage(instance, remoteJid, data.messages, data.input, data.clientSideActions);
 
       return;
