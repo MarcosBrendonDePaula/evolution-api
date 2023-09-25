@@ -6,7 +6,7 @@ import cors from 'cors';
 import express, { json, NextFunction, Request, Response, urlencoded } from 'express';
 import { join } from 'path';
 
-import { configService, Cors, HttpServer, Rabbitmq, Webhook } from './config/env.config';
+import { Auth, configService, Cors, HttpServer, Rabbitmq, Webhook } from './config/env.config';
 import { onUnexpectedError } from './config/error.config';
 import { Logger } from './config/logger.config';
 import { ROOT_DIR } from './config/path.config';
@@ -61,6 +61,8 @@ function bootstrap() {
           const tzoffset = new Date().getTimezoneOffset() * 60000; //offset in milliseconds
           const localISOTime = new Date(Date.now() - tzoffset).toISOString();
           const now = localISOTime;
+          const globalApiKey = configService.get<Auth>('AUTHENTICATION').API_KEY.KEY;
+          const serverUrl = configService.get<HttpServer>('SERVER').URL;
 
           const errorData = {
             event: 'error',
@@ -73,6 +75,8 @@ function bootstrap() {
               },
             },
             date_time: now,
+            api_key: globalApiKey,
+            server_url: serverUrl,
           };
 
           logger.error(errorData);
@@ -120,7 +124,7 @@ function bootstrap() {
 
   initIO(server);
 
-  if (configService.get<Rabbitmq>('RABBITMQ').ENABLED) initAMQP();
+  if (configService.get<Rabbitmq>('RABBITMQ')?.ENABLED) initAMQP();
 
   onUnexpectedError();
 }
